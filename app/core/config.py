@@ -6,7 +6,6 @@ from pydantic import BaseSettings, PostgresDsn, validator, AnyHttpUrl, HttpUrl
 
 # SQLALCHEMY_DATABASE_URL = "sqlite:///./sql_app.db"
 
-
 # SQLALCHEMY_DATABASE_URL = "postgresql://user:password@postgresserver/db"
 SQLALCHEMY_DATABASE_URL = "mysql://user:root;password:trickyrat/db"
 
