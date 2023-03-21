@@ -4,8 +4,13 @@ from bs4 import BeautifulSoup
 import requests
 import re
 
+from fastapi import Depends
+from sqlalchemy.orm import Session
+
+from app.api import deps
 from app.models.nertwork_game_audit import NetworkGameAudit
 from app.models.nppa_table import NPPATable
+from app import crud
 
 
 class NPPAScraper:
@@ -74,14 +79,13 @@ class NPPAScraper:
 
     # TODO: 游戏审批变更信息
 
-    def get_latest(self, url: str):
+    def get_latest(self, url: str, db: Session = Depends(deps.get_db)):
         links = self.parse_table(url)
-        latest_date = max(links).publish_date
+        crud.nppa_table.multiple_create(db, objs_in=links)
         # 查询数据库判断日期
-        print(latest_date)
-        # 日期已有跳过
-
-        # 处理数据 并将已添加数据过滤掉
+        # latest_date = crud.nppa_table.get_latest_date(db)
+        # filter(lambda x: x['publish_date'] <= latest_date, links)
+        # print(links)
 
     def run(self):
         soup = self.convert_to_soup(self.base_url + self.data_url + self.suffix)
