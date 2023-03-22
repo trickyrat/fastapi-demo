@@ -14,7 +14,7 @@ from app.models.game_audit import GameAudit
 from app import crud
 
 
-class NPPAGameAuditScraper:
+class NPPAGameAuditCrawler:
     def __init__(self):
         self.base_url = "https://www.nppa.gov.cn"
         self.data_url = "/nppa/channels/317"  # 第一页 /nppa/channels/317.shtml 后续页面/nppa/channels/317_2.shtml
@@ -243,5 +243,5 @@ def init_log():
 
 if __name__ == '__main__':
     init_log()
-    scraper = NPPAGameAuditScraper()
+    scraper = NPPAGameAuditCrawler()
     scraper.run(2)
