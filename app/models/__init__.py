@@ -2,8 +2,8 @@ from .user import User
 from .book import Book
 from .author import Author
 from .role import Role
-from .nppa_table import NPPATable
+from .game_audit import GameAudit
 from .egame_audit import EGameAudit
 from .network_game_audit import NetworkGameAudit
-from .audit_change import AuditChange
-from .audit_cancel import AuditCancel
+from .game_audit_change import GameAuditChange
+from .game_audit_cancel import GameAuditCancel

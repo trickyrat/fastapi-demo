@@ -1,10 +1,7 @@
-import datetime
-from typing import Optional
-
 from pydantic import BaseModel
 
 
-class AuditCancelBase(BaseModel):
+class GameAuditChangeBase(BaseModel):
     name: str
     audit_category: str
     publisher: str
@@ -15,15 +12,15 @@ class AuditCancelBase(BaseModel):
     approve_date: str
 
 
-class AuditCancelCreate(AuditCancelBase):
+class GameAuditChangeCreate(GameAuditChangeBase):
     pass
 
 
-class AuditCancelUpdate(AuditCancelBase):
+class GameAuditChangeUpdate(GameAuditChangeBase):
     pass
 
 
-class AuditCancelInDBBase(AuditCancelBase):
+class GameAuditChangeInDBBase(GameAuditChangeBase):
     id: int
     name: str
     audit_category: str
@@ -38,5 +35,5 @@ class AuditCancelInDBBase(AuditCancelBase):
         orm_mode = True
 
 
-class AuditCancel(AuditCancelInDBBase):
+class GameAuditChange(GameAuditChangeInDBBase):
     pass

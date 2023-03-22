@@ -3,8 +3,8 @@ from app.models.book import Book # noqa
 from app.models.author import Author # noqa
 from app.models.user import User # noqa
 from app.models.role import Role # noqa
-from app.models.nppa_table import NPPATable # noqa
+from app.models.game_audit import GameAudit # noqa
 from app.models.network_game_audit import NetworkGameAudit # noqa
-from app.models.audit_cancel import AuditCancel # noqa
-from app.models.audit_change import AuditChange # noqa
+from app.models.game_audit_cancel import GameAuditCancel # noqa
+from app.models.game_audit_change import GameAuditChange # noqa
 from app.models.egame_audit import EGameAudit # noqa

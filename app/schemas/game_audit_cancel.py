@@ -4,7 +4,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 
-class AuditChangeBase(BaseModel):
+class GameAuditCancelBase(BaseModel):
     name: str
     audit_category: str
     publisher: str
@@ -15,15 +15,15 @@ class AuditChangeBase(BaseModel):
     approve_date: str
 
 
-class AuditChangeCreate(AuditChangeBase):
+class GameAuditCancelCreate(GameAuditCancelBase):
     pass
 
 
-class AuditChangeUpdate(AuditChangeBase):
+class GameAuditCancelUpdate(GameAuditCancelBase):
     pass
 
 
-class AuditChangeInDBBase(AuditChangeBase):
+class GameAuditCancelInDBBase(GameAuditCancelBase):
     id: int
     name: str
     audit_category: str
@@ -38,5 +38,5 @@ class AuditChangeInDBBase(AuditChangeBase):
         orm_mode = True
 
 
-class AuditChange(AuditChangeInDBBase):
+class GameAuditCancel(GameAuditCancelInDBBase):
     pass

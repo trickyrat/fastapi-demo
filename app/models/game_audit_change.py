@@ -3,7 +3,7 @@ from sqlalchemy import Column, Integer, String, DateTime
 from app.db.base_class import Base
 
 
-class AuditChange(Base):
+class GameAuditChange(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(256))
     audit_category = Column(String(128))

@@ -1,12 +1,9 @@
-from typing import TYPE_CHECKING
-import datetime
-
-from sqlalchemy import Boolean, Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime
 
 from app.db.base_class import Base
 
 
-class NPPATable(Base):
+class GameAudit(Base):
     def __gt__(self, other):
         return self.publish_date > other.publish_date
 

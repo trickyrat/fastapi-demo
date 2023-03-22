@@ -1,24 +1,23 @@
 import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 
 
-class NPPATableBase(BaseModel):
+class GameAuditBase(BaseModel):
     title: str
     url: str
     publish_date:  str
 
 
-class NPPATableCreate(NPPATableBase):
+class GameAuditCreate(GameAuditBase):
     pass
 
 
-class NPPATableUpdate(NPPATableBase):
+class GameAuditUpdate(GameAuditBase):
     pass
 
 
-class NPPATableInDBBase(NPPATableBase):
+class GameAuditInDBBase(GameAuditBase):
     id: int
     title: str
     url: str
@@ -28,5 +27,5 @@ class NPPATableInDBBase(NPPATableBase):
         orm_mode = True
 
 
-class NPPATable(NPPATableInDBBase):
+class GameAudit(GameAuditInDBBase):
     pass
