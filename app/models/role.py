@@ -11,7 +11,7 @@ if TYPE_CHECKING:
 
 class Role(Base):
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, index=True)
-    is_active = Column(Boolean(), default=True)
+    name = Column(String(32), index=True)
+    is_active = Column(Boolean, default=True)
 
     users = relationship("User", back_populates="role")
