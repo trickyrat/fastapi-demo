@@ -3,3 +3,7 @@ from .book import Book
 from .author import Author
 from .role import Role
 from .nppa_table import NPPATable
+from .egame_audit import EGameAudit
+from .network_game_audit import NetworkGameAudit
+from .audit_change import AuditChange
+from .audit_cancel import AuditCancel
