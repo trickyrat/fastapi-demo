@@ -20,7 +20,9 @@ class CRUDGameAudit(CRUDBase[GameAudit, GameAuditCreate, GameAuditUpdate]):
     def get_all(self, db: Session) -> list[GameAudit]:
         return db.query(GameAudit).order_by(GameAudit.publish_date.desc()).all()
 
-    def get_paged_audits(self, db: Session, title: Optional[str], skip: int = 0, limit: int = 10) -> PagedResult:
+    def get_paged_audits(
+        self, db: Session, title: Optional[str], skip: int = 0, limit: int = 10
+    ) -> PagedResult:
         query = db.query(GameAudit)
         if title:
             query = query.filter(models.GameAudit.title.like(f"%{title}%"))
@@ -35,7 +37,12 @@ class CRUDGameAudit(CRUDBase[GameAudit, GameAuditCreate, GameAuditUpdate]):
 
     def get_latest_date(self, db: Session) -> datetime.datetime:
         """获取最新发布日期"""
-        return db.query(GameAudit).order_by(GameAudit.publish_date.desc()).first().publish_date
+        return (
+            db.query(GameAudit)
+            .order_by(GameAudit.publish_date.desc())
+            .first()
+            .publish_date
+        )
 
     def delete_all(self, db: Session) -> None:
         """删除所有数据"""

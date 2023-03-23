@@ -20,20 +20,27 @@ class CRUDAuthor(CRUDBase[Author, AuthorCreate, AuthorUpdate]):
         if not author:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Could not find the author with id: {author_id}."
+                detail=f"Could not find the author with id: {author_id}.",
             )
         return author
 
-    def get_authors(self, db: Session, *, search_term: Optional[str] = None, skip: int = 0, limit: int = 10) -> list[
-        Author]:
+    def get_authors(
+        self,
+        db: Session,
+        *,
+        search_term: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 10,
+    ) -> list[Author]:
         query = db.query(self.model)
         if search_term:
-            query = query.filter(or_(Author.last_name.like(f"{search_term}"), Author.first_name.like(f"{search_term}")))
-        return (
-            query.offset(skip)
-            .limit(limit)
-            .all()
-        )
+            query = query.filter(
+                or_(
+                    Author.last_name.like(f"{search_term}"),
+                    Author.first_name.like(f"{search_term}"),
+                )
+            )
+        return query.offset(skip).limit(limit).all()
 
 
 author = CRUDAuthor(Author)

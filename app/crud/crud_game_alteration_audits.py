@@ -2,20 +2,33 @@ from sqlalchemy.orm import Session
 
 from app.crud.base import CRUDBase
 from app.models.game_alteration_audit import GameAlterationAudit
-from app.schemas.game_alteration_audit import GameAlterationAuditCreate, GameAlterationAuditUpdate
+from app.schemas.game_alteration_audit import (
+    GameAlterationAuditCreate,
+    GameAlterationAuditUpdate,
+)
 
 
-class CRUDGameAlterationAudit(CRUDBase[GameAlterationAudit, GameAlterationAuditCreate, GameAlterationAuditUpdate]):
-    def create(self, db: Session, *, obj_in: GameAlterationAudit) -> GameAlterationAudit:
+class CRUDGameAlterationAudit(
+    CRUDBase[GameAlterationAudit, GameAlterationAuditCreate, GameAlterationAuditUpdate]
+):
+    def create(
+        self, db: Session, *, obj_in: GameAlterationAudit
+    ) -> GameAlterationAudit:
         db.add(obj_in)
         db.commit()
         db.refresh(obj_in)
         return obj_in
 
     def get_all(self, db: Session) -> list[GameAlterationAudit]:
-        return db.query(GameAlterationAudit).order_by(GameAlterationAudit.publish_date.desc()).all()
+        return (
+            db.query(GameAlterationAudit)
+            .order_by(GameAlterationAudit.publish_date.desc())
+            .all()
+        )
 
-    def multiple_create(self, db: Session, *, objs_in: list[GameAlterationAudit]) -> None:
+    def multiple_create(
+        self, db: Session, *, objs_in: list[GameAlterationAudit]
+    ) -> None:
         db.add_all(objs_in)
         db.commit()
 

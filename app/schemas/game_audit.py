@@ -6,7 +6,7 @@ from pydantic import BaseModel
 class GameAuditBase(BaseModel):
     title: str
     url: str
-    publish_date:  str
+    publish_date: str
 
 
 class GameAuditCreate(GameAuditBase):
