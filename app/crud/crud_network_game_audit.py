@@ -72,14 +72,14 @@ class CRUDNetworkGameAudit(
         else:
             filter_str = ""
 
-        sql = text("""select t.audit_category, count(*) audit_count
+        sql = text(f"""select t.audit_category, count(*) audit_count
             from (select case when audit_category = '' then '无分类' else audit_category end audit_category
             from networkgameaudits where 1=1 {filter_str}) t group by t.audit_category
             order by audit_count desc limit 10
             """)
         result_proxy = db.execute(
             sql,
-            {'category':category},
+            {'category': category},
         ).fetchall()
         data = []
         for item in result_proxy:
