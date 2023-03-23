@@ -6,7 +6,7 @@ from app import models
 from app.crud.base import CRUDBase
 from app.models.network_game_audit import NetworkGameAudit
 from app.schemas import PagedResult
-from app.schemas.network_game_audit import NetworkGameAuditCreate, NetworkGameAuditUpdate
+from app.schemas.network_game_audit import NetworkGameAuditCreate, NetworkGameAuditUpdate, NetworkGameCategoryRank
 
 
 class CRUDNetworkGameAudit(CRUDBase[NetworkGameAudit, NetworkGameAuditCreate, NetworkGameAuditUpdate]):
@@ -46,6 +46,25 @@ class CRUDNetworkGameAudit(CRUDBase[NetworkGameAudit, NetworkGameAuditCreate, Ne
 
     def is_empty(self, db: Session) -> bool:
         return False if db.query(NetworkGameAudit).first() else True
+
+    def get_audit_categroy_top_10(self, db: Session, category: Optional[int]) -> list[NetworkGameCategoryRank]:
+        """Get the top 10 audit category
+        :param category: the category of game e.g: 1: domestic 2: foreign
+        """
+        if category:
+            filter_str = "and category=?"
+        else:
+            filter_str = ""
+        result_proxy = db.execute(
+            f"select t.audit_category, count(*) audit_count "
+            f"from (select IF(audit_category = '', '无分类', audit_category) audit_category "
+            f"from networkgameaudits where 1=1 {filter_str}) t group by t.audit_category "
+            f"order by audit_count desc limit 10",
+            category).fetchall()
+        data = []
+        for item in result_proxy:
+            data.append(NetworkGameCategoryRank(audit_category=item[0], audit_count=item[1]))
+        return data
 
 
 network_game_audit = CRUDNetworkGameAudit(NetworkGameAudit)

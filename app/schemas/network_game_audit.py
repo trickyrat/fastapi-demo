@@ -40,3 +40,8 @@ class NetworkGameAuditInDBBase(NetworkGameAuditBase):
 
 class NetworkGameAudit(NetworkGameAuditInDBBase):
     pass
+
+
+class NetworkGameCategoryRank(BaseModel):
+    audit_category: str
+    audit_count: int
