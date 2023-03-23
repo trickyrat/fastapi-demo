@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import text
+from sqlalchemy import or_, text
 from sqlalchemy.orm import Session
 
 from app import models
@@ -28,10 +28,10 @@ class CRUDNetworkGameAudit(
     ) -> PagedResult:
         query = db.query(NetworkGameAudit)
         if query_str:
-            query = query.filter(
-                models.NetworkGameAudit.title.like(f"%{query_str}%")
-                or models.NetworkGameAudit.publisher.like(f"%{query_str}%")
-                or models.NetworkGameAudit.operator.like(f"%{query_str}%")
+            query = query.filter(or_(
+                models.NetworkGameAudit.name.like(f"%{query_str}%"),
+                models.NetworkGameAudit.publisher.like(f"%{query_str}%"),
+                models.NetworkGameAudit.operator.like(f"%{query_str}%"))
             )
 
         audits = query.offset(skip).limit(limit).all()
