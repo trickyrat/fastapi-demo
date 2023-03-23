@@ -1,32 +1,32 @@
 from pydantic import BaseModel
 
 
-class GameAuditChangeBase(BaseModel):
+class GameRevocationAuditBase(BaseModel):
     name: str
     audit_category: str
     publisher: str
     operator: str
-    cancel_msg: str
+    revocation_msg: str
     audit_no: str
     isbn: str
     approve_date: str
 
 
-class GameAuditChangeCreate(GameAuditChangeBase):
+class GameRevocationAuditCreate(GameRevocationAuditBase):
     pass
 
 
-class GameAuditChangeUpdate(GameAuditChangeBase):
+class GameRevocationAuditUpdate(GameRevocationAuditBase):
     pass
 
 
-class GameAuditChangeInDBBase(GameAuditChangeBase):
+class GameRevocationAuditInDBBase(GameRevocationAuditBase):
     id: int
     name: str
     audit_category: str
     publisher: str
     operator: str
-    cancel_msg: str
+    revocation_msg: str
     audit_no: str
     isbn: str
     approve_date: str
@@ -35,5 +35,5 @@ class GameAuditChangeInDBBase(GameAuditChangeBase):
         orm_mode = True
 
 
-class GameAuditChange(GameAuditChangeInDBBase):
+class GameRevocationAudit(GameRevocationAuditInDBBase):
     pass

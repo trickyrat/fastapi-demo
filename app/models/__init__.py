@@ -5,5 +5,5 @@ from .role import Role
 from .game_audit import GameAudit
 from .egame_audit import EGameAudit
 from .network_game_audit import NetworkGameAudit
-from .game_audit_change import GameAuditChange
-from .game_audit_cancel import GameAuditCancel
+from .game_alteration_audit import GameAlterationAudit
+from .game_revocation_audit import GameRevocationAudit

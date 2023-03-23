@@ -1,5 +1,7 @@
 import datetime
+import getopt
 import logging
+import sys
 
 from bs4 import BeautifulSoup
 import requests
@@ -8,7 +10,7 @@ import re
 from sqlalchemy.orm import Session
 
 from app.api import deps
-from app.models import EGameAudit, GameAuditCancel, GameAuditChange
+from app.models import EGameAudit, GameRevocationAudit, GameAlterationAudit
 from app.models.network_game_audit import NetworkGameAudit
 from app.models.game_audit import GameAudit
 from app import crud
@@ -23,20 +25,19 @@ class NPPAGameAuditCrawler:
         }
         self.suffix = '.shtml'
 
-    def convert_to_soup(self, url: str):
+    def __convert_to_soup(self, url: str):
         response = requests.get(url, headers=self.headers)
         response.encoding = 'u8'
         html = response.text
         soup = BeautifulSoup(html, "html.parser")
         return soup
 
-    def parse_table(self, url: str) -> list[GameAudit]:
-        """ 获取当前页所有审批信息列表
-
-        :return: 审批信息路由列表
+    def __parse_table(self, url: str) -> list[GameAudit]:
+        """ Parse data table
+        :return: List of game audits
         """
         logging.info(f"Start to parse {url}.")
-        soup = self.convert_to_soup(url)
+        soup = self.__convert_to_soup(url)
         ul = soup.find("ul", "m2nrul")
         links = []
         li_list = ul.find_all("li")
@@ -51,16 +52,15 @@ class NPPAGameAuditCrawler:
         logging.info("Parse completed.")
         return links
 
-    def parse_network_game_audits(self, url: str, game_type: str) -> list[NetworkGameAudit]:
-        """ 解析进口/国产网络游戏审批信息
-
-        :param url: 表格请求路由
-        :param game_type: 320 国产 318 进口
-        :return: 审批信息列表
+    def __parse_network_game_audits(self, url: str, game_type: str) -> list[NetworkGameAudit]:
+        """ Parse network game audits
+        :param url: url of network game
+        :param game_type: 320 domestic 318 foreign
+        :return: List of network game audits
         """
         logging.info(f"Start to parse network game audit, url: {url}.")
         network_games = []
-        soup = self.convert_to_soup(url)
+        soup = self.__convert_to_soup(url)
         # table_rows = []
         table_row_selector = 'tr:not([style*=color])'
         if game_type == '320':
@@ -86,16 +86,14 @@ class NPPAGameAuditCrawler:
         logging.info(f"Parsed total {len(network_games)} network game audits from url: {url}.")
         return network_games
 
-    def parse_egame_audits(self, url: str) -> list[EGameAudit]:
-        """
-        解析进口电子游戏审批信息
-
-        :param url: 表格请求路由 319
-        :return: 进口电子游戏审批信息列表
+    def __parse_egame_audits(self, url: str) -> list[EGameAudit]:
+        """Parse foreign e-game audits
+        :param url: url of e-game audits(319)
+        :return: List of foreign e-game audits
         """
         logging.info(f"Start to parse e-game audit, url: {url}.")
         egames = []
-        soup = self.convert_to_soup(url)
+        soup = self.__convert_to_soup(url)
         table_rows = soup.select('tr:not([style*=color])')
         for row in table_rows:
             tds = row.find_all('td')
@@ -107,119 +105,125 @@ class NPPAGameAuditCrawler:
         logging.info(f"Parsed total {len(egames)} e-game audits from url: {url}.")
         return egames
 
-    def parse_game_audit_cancels(self, url: str) -> list[GameAuditCancel]:
+    def __parse_game_revocation_audits(self, url: str) -> list[GameRevocationAudit]:
+        """Parse game revocation audits
+        :param url: url of revocation 747
+        :return: List of game revocation audits
         """
-        解析游戏审批撤销信息
-
-        :param url: 表格请求路由 747
-        :return: 游戏审批撤销信息列表
-        """
-        logging.info(f"Start to parse game cancel audit, url: {url}.")
-        cancellations = []
-        soup = self.convert_to_soup(url)
+        logging.info(f"Start to parse game audit revocations, url: {url}.")
+        revocations = []
+        soup = self.__convert_to_soup(url)
         table_rows = soup.select('tr:not([style*=color])')
         for row in table_rows:
             tds = row.find_all('td')
             td_count = len(tds)
             isbn = '' if td_count == 8 else tds[7].text
             approve_date = tds[7].text if td_count == 8 else tds[8].text
-            cancellations.append(GameAuditCancel(name=tds[1].text,
-                                                 audit_category=tds[2].text,
-                                                 publisher=tds[3].text,
-                                                 operator=tds[4].text,
-                                                 cancel_msg=tds[5].text,
-                                                 audit_no=tds[6].text,
-                                                 isbn=isbn,
-                                                 approve_date=datetime.datetime.strptime(approve_date, "%Y年%m月%d日")))
-        logging.info(f"Parsed total {len(cancellations)} game cancel audits from url: {url}.")
-        return cancellations
+            revocations.append(GameRevocationAudit(name=tds[1].text,
+                                                   audit_category=tds[2].text,
+                                                   publisher=tds[3].text,
+                                                   operator=tds[4].text,
+                                                   revocation_msg=tds[5].text,
+                                                   audit_no=tds[6].text,
+                                                   isbn=isbn,
+                                                   approval_date=datetime.datetime.strptime(approve_date,
+                                                                                            "%Y年%m月%d日")))
+        logging.info(f"Parsed total {len(revocations)} game revocation audits from url: {url}.")
+        return revocations
 
-    def parse_game_audit_changes(self, url: str) -> list[GameAuditChange]:
-        """
-        解析游戏审批变更信息
-
-        :param url: 表格请求路由 321
-        :return: 游戏审批变更信息列表
+    def __parse_game_alteration_audits(self, url: str) -> list[GameAlterationAudit]:
+        """Parse game audit changes
+        :param url: url of changes(321)
+        :return: List of game audit changes
         """
         logging.info(f"Start to parse game change audit, url: {url}.")
-        changes = []
-        soup = self.convert_to_soup(url)
+        alterations = []
+        soup = self.__convert_to_soup(url)
         table_rows = soup.select('tr:not([style*=color])')
         for row in table_rows:
             tds = row.find_all('td')
             td_count = len(tds)
             isbn = '' if td_count == 8 else tds[7].text
             publish_date = tds[7].text if td_count == 8 else tds[8].text
-            changes.append(GameAuditChange(name=tds[1].text,
-                                           audit_category=tds[2].text,
-                                           publisher=tds[3].text,
-                                           operator=tds[4].text,
-                                           change_msg=tds[5].text,
-                                           audit_no=tds[6].text,
-                                           isbn=isbn,
-                                           change_date=datetime.datetime.strptime(publish_date, "%Y年%m月%d日")))
+            alterations.append(GameAlterationAudit(name=tds[1].text,
+                                                   audit_category=tds[2].text,
+                                                   publisher=tds[3].text,
+                                                   operator=tds[4].text,
+                                                   alteration_msg=tds[5].text,
+                                                   audit_no=tds[6].text,
+                                                   isbn=isbn,
+                                                   alter_date=datetime.datetime.strptime(publish_date, "%Y年%m月%d日")))
 
-        logging.info(f"Parsed total {len(changes)} game change audits from url: {url}.")
-        return changes
+        logging.info(f"Parsed total {len(alterations)} game change audits from url: {url}.")
+        return alterations
 
-    def get_latest_game_audits(self, db: Session):
-
-        links = self.parse_table(self.base_url + self.data_url + self.suffix)
+    def __get_latest_game_audits(self, db: Session) -> None:
+        """Get incremental game audits
+        :param db: Database session
+        """
+        links = self.__parse_table(self.base_url + self.data_url + self.suffix)
         latest_date = crud.game_audit.get_latest_date(db)
         links = list(filter(lambda x: x.publish_date > latest_date, links))
         # save links
         if links:
             crud.game_audit.multiple_create(db, objs_in=links)
             logging.info(f"Saved total {len(links)} game audits")
-            self.parse_game_audits(links)
+            self.__parse_game_audits(db, links)
         else:
-            logging.info("No NPPA game audit to save.")
+            logging.info("There's no new NPPA game audit to save.")
 
-    def get_all_game_audits(self, db: Session):
+    def __get_all_game_audits(self, db: Session) -> None:
+        """Get full game audits. Will clean up tables and refill data
+        :param db: Database session
+        """
         is_empty = crud.game_audit.is_empty(db)
         if not is_empty:
             crud.game_audit.delete_all(db)  # clear database table
 
-        soup = self.convert_to_soup(self.base_url + self.data_url + self.suffix)
+        soup = self.__convert_to_soup(self.base_url + self.data_url + self.suffix)
         total_page = re.sub(r"\D", '', soup.find('a', class_='sPage_a sPage_prev').text)
         game_audit_list = []
         for i in range(1, int(total_page) + 1):
             current_page = '' if i == 1 else f'_{i}'
             url = f"{self.base_url}{self.data_url}{current_page}{self.suffix}"
-            game_audit_list.extend(self.parse_table(url))
+            game_audit_list.extend(self.__parse_table(url))
         if game_audit_list:
             crud.game_audit.multiple_create(db, objs_in=game_audit_list)
             logging.info(f"Saved total {len(game_audit_list)} game audits")
-            self.parse_game_audits(db, game_audit_list)
+            self.__parse_game_audits(db, game_audit_list)
         else:
             logging.info("No NPPA game audit to save.")
 
-    def parse_game_audits(self, db: Session, game_audits: list[GameAudit]) -> None:
+    def __parse_game_audits(self, db: Session, game_audits: list[GameAudit]) -> None:
+        """Parse game audits
+        :param db: Database session
+        :param game_audits： List of game audits
+        """
         domestic_network_game_cnt = foreign_network_game_cnt = audit_changes_cnt = audit_cancel_cnt = egame_audit_cnt = 0
         for audits in game_audits:
             data_type = re.search(r"/(\d{3})/", audits.url).group(1)
             if data_type == '318':
-                domestic_network_games = self.parse_network_game_audits(audits.url, data_type)
+                domestic_network_games = self.__parse_network_game_audits(audits.url, data_type)
                 domestic_network_game_cnt += len(domestic_network_games)
                 crud.network_game_audit.multiple_create(db, objs_in=domestic_network_games)
                 domestic_network_games.clear()
             elif data_type == '320':
-                foreign_network_games = self.parse_network_game_audits(audits.url, data_type)
+                foreign_network_games = self.__parse_network_game_audits(audits.url, data_type)
                 foreign_network_game_cnt += len(foreign_network_games)
                 crud.network_game_audit.multiple_create(db, objs_in=foreign_network_games)
                 foreign_network_games.clear()
             elif data_type == '321':
-                audit_changes = self.parse_game_audit_changes(audits.url)
+                audit_changes = self.__parse_game_alteration_audits(audits.url)
                 audit_changes_cnt += len(audit_changes)
-                crud.game_audit_change.multiple_create(db, objs_in=audit_changes)
+                crud.game_alteration_audit.multiple_create(db, objs_in=audit_changes)
                 audit_changes.clear()
             elif data_type == '747':
-                audit_cancels = self.parse_game_audit_cancels(audits.url)
+                audit_cancels = self.__parse_game_revocation_audits(audits.url)
                 audit_cancel_cnt += len(audit_cancels)
-                crud.game_audit_cancel.multiple_create(db, objs_in=audit_cancels)
+                crud.game_revocation_audit.multiple_create(db, objs_in=audit_cancels)
                 audit_cancels.clear()
             elif data_type == '319':
-                egames = self.parse_egame_audits(audits.url)
+                egames = self.__parse_egame_audits(audits.url)
                 egame_audit_cnt += len(egames)
                 crud.egame_audit.multiple_create(db, objs_in=egames)
                 egames.clear()
@@ -230,15 +234,15 @@ class NPPAGameAuditCrawler:
         logging.info(f"Saved total {audit_cancel_cnt} game audit cancels.")
         logging.info(f"Saved total {egame_audit_cnt} foreign e-games.")
 
-    def run(self, mode=1):
-        """
-        :param mode 1 获取最新数据 2 获取全量数据
+    def run(self, mode=0):
+        """ Entry of the crawler
+        :param mode: 0 incremental data 1 full data, default 0
         """
         db: Session = next(deps.get_db())
-        if mode == 1:
-            self.get_latest_game_audits(db)
+        if mode == 0:
+            self.__get_latest_game_audits(db)
         else:
-            self.get_all_game_audits(db)
+            self.__get_all_game_audits(db)
 
 
 def init_log():
@@ -252,8 +256,28 @@ def init_log():
     logger.addHandler(console_handler)
 
 
-if __name__ == '__main__':
+def main(argv):
     init_log()
+    try:
+        opts, args = getopt.getopt(argv, "hm:", ["help", "mode="])
+    except getopt.GetoptError:
+        print('Error: -m <mode> pr --mode=<mode>, mode is 0 or 1. 0: incremental data, 1: full data')
+        sys.exit(2)
+
+    for opt, arg in opts:
+        if opt in ("-h", "--help"):
+            print(
+                'Support parameter mode. e.g: -m <mode> pr --mode=<mode>, mode is 0 or 1. 0: incremental data, 1: full data')
+            sys.exit()
+        elif opt in ("-m", "--mode"):
+            arg = int(arg)
+            if arg > 1 or arg < 0:
+                print('Mode is only supported 0 or 1.')
+                sys.exit(2)
+            mode = arg
     crawler = NPPAGameAuditCrawler()
-    crawler.run(2)
-    #crawler.parse_network_game_audits('https://www.nppa.gov.cn/nppa/contents/320/75242.shtml', '320')
+    crawler.run(mode)
+
+
+if __name__ == '__main__':
+    main(sys.argv[1:])

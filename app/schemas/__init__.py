@@ -6,7 +6,7 @@ from .msg import Msg
 from .network_game_audit import NetworkGameAudit, NetworkGameAuditCreate, NetworkGameAuditUpdate, \
     NetworkGameAuditInDBBase
 from .game_audit import GameAudit, GameAuditCreate, GameAuditUpdate, GameAuditInDBBase
-from .game_audit_cancel import GameAuditCancel, GameAuditCancelCreate, GameAuditCancelUpdate, GameAuditCancelInDBBase
-from .game_audit_change import GameAuditChange, GameAuditChangeCreate, GameAuditChangeUpdate, GameAuditChangeInDBBase
+from .game_revocation_audit import GameRevocationAudit, GameRevocationAuditCreate, GameRevocationAuditUpdate, GameRevocationAuditInDBBase
+from .game_alteration_audit import GameAlterationAudit, GameAlterationAuditCreate, GameAlterationAuditUpdate, GameAlterationAuditInDBBase
 from .egame_audit import EGameAudit, EGameAuditCreate, EGameAuditUpdate, EGameAuditInDBBase
 from .paged_result import PagedResult

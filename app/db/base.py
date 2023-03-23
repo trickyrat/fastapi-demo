@@ -5,6 +5,6 @@ from app.models.user import User # noqa
 from app.models.role import Role # noqa
 from app.models.game_audit import GameAudit # noqa
 from app.models.network_game_audit import NetworkGameAudit # noqa
-from app.models.game_audit_cancel import GameAuditCancel # noqa
-from app.models.game_audit_change import GameAuditChange # noqa
+from app.models.game_revocation_audit import GameRevocationAudit # noqa
+from app.models.game_alteration_audit import GameAlterationAudit # noqa
 from app.models.egame_audit import EGameAudit # noqa
