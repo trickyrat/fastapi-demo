@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     SQLALCHEMY_DATABASE_URI: Optional[str] = \
         "mysql+pymysql://root:trickyrat@localhost:3306/test?charset=utf8" \
-        if is_windows else "sqlite:///../../sql_app.db"
+        if is_windows else "sqlite:///../../test.db"
 
 
 settings = Settings()
