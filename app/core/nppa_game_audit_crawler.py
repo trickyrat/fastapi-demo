@@ -61,7 +61,13 @@ class NPPAGameAuditCrawler:
         logging.info(f"Start to parse network game audit, url: {url}.")
         network_games = []
         soup = self.convert_to_soup(url)
-        table_rows = soup.select('tr:not([style*=color])')
+        # table_rows = []
+        table_row_selector = 'tr:not([style*=color])'
+        if game_type == '320':
+            table = soup.find_all('table', class_='trStyle tableNormal')
+            table_rows = table[0].select(table_row_selector)
+        else:
+            table_rows = soup.select(table_row_selector)
         for row in table_rows:
             tds = row.find_all('td')
             td_count = len(tds)
@@ -196,22 +202,27 @@ class NPPAGameAuditCrawler:
                 domestic_network_games = self.parse_network_game_audits(audits.url, data_type)
                 domestic_network_game_cnt += len(domestic_network_games)
                 crud.network_game_audit.multiple_create(db, objs_in=domestic_network_games)
+                domestic_network_games.clear()
             elif data_type == '320':
                 foreign_network_games = self.parse_network_game_audits(audits.url, data_type)
                 foreign_network_game_cnt += len(foreign_network_games)
                 crud.network_game_audit.multiple_create(db, objs_in=foreign_network_games)
+                foreign_network_games.clear()
             elif data_type == '321':
                 audit_changes = self.parse_game_audit_changes(audits.url)
                 audit_changes_cnt += len(audit_changes)
                 crud.game_audit_change.multiple_create(db, objs_in=audit_changes)
+                audit_changes.clear()
             elif data_type == '747':
                 audit_cancels = self.parse_game_audit_cancels(audits.url)
                 audit_cancel_cnt += len(audit_cancels)
                 crud.game_audit_cancel.multiple_create(db, objs_in=audit_cancels)
+                audit_cancels.clear()
             elif data_type == '319':
                 egames = self.parse_egame_audits(audits.url)
                 egame_audit_cnt += len(egames)
                 crud.egame_audit.multiple_create(db, objs_in=egames)
+                egames.clear()
 
         logging.info(f"Saved total {domestic_network_game_cnt} domestic network games.")
         logging.info(f"Saved total {foreign_network_game_cnt} foreign network games.")
@@ -243,5 +254,6 @@ def init_log():
 
 if __name__ == '__main__':
     init_log()
-    scraper = NPPAGameAuditCrawler()
-    scraper.run(2)
+    crawler = NPPAGameAuditCrawler()
+    crawler.run(2)
+    #crawler.parse_network_game_audits('https://www.nppa.gov.cn/nppa/contents/320/75242.shtml', '320')
