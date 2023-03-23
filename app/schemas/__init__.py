@@ -4,7 +4,7 @@ from .token import Token, TokenPayload
 from .user import User, UserCreate, UserUpdate, UserInDB
 from .msg import Msg
 from .network_game_audit import NetworkGameAudit, NetworkGameAuditCreate, NetworkGameAuditUpdate, \
-    NetworkGameAuditInDBBase
+    NetworkGameAuditInDBBase, NetworkGameCategoryRank
 from .game_audit import GameAudit, GameAuditCreate, GameAuditUpdate, GameAuditInDBBase
 from .game_revocation_audit import GameRevocationAudit, GameRevocationAuditCreate, GameRevocationAuditUpdate, GameRevocationAuditInDBBase
 from .game_alteration_audit import GameAlterationAudit, GameAlterationAuditCreate, GameAlterationAuditUpdate, GameAlterationAuditInDBBase

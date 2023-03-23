@@ -156,7 +156,7 @@ def downgrade() -> None:
     op.drop_index(op.f('ix_authors_id'), table_name='authors')
     op.drop_table('authors')
     op.drop_index(op.f('ix_gameauditchanges_id'), table_name='gameauditchanges')
-    op.drop_table('gameauditchanges')
-    op.drop_index(op.f('ix_gameauditcancels_id'), table_name='gameauditcancels')
-    op.drop_table('gameauditcancels')
+    op.drop_table('gamealterationaudits')
+    op.drop_index(op.f('ix_gamerevocationaudits_id'), table_name='gamerevocationaudits')
+    op.drop_table('gamerevocationaudits')
     # ### end Alembic commands ###
