@@ -44,6 +44,6 @@ async def read_network_game_audits(
     response_model=list[schemas.NetworkGameCategoryRank],
 )
 async def read_network_game_audit_category_top_10(
-    *, db: Session = Depends(deps.get_db), category: Optional[int] = None
+    *, db: Session = Depends(deps.get_db), category: Optional[str] = None
 ):
     return crud.network_game_audit.get_audit_categroy_top_10(db, category=category)

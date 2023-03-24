@@ -62,7 +62,7 @@ class CRUDNetworkGameAudit(
         return False if db.query(NetworkGameAudit).first() else True
 
     def get_audit_categroy_top_10(
-        self, db: Session, category: Optional[int]
+        self, db: Session, category: Optional[str]
     ) -> list[NetworkGameCategoryRank]:
         """Get the top 10 audit category
         :param category: the category of game e.g: 1: domestic 2: foreign
