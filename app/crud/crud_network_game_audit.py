@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import or_, text
+from sqlalchemy import or_, text, func, case, literal_column
 from sqlalchemy.orm import Session
 
 from app import models
@@ -24,7 +24,7 @@ class CRUDNetworkGameAudit(
         return obj_in
 
     def get_paged_network_games_audits(
-        self, db: Session, query_str: Optional[str], skip: int = 0, limit: int = 10
+            self, db: Session, query_str: Optional[str], skip: int = 0, limit: int = 10
     ) -> PagedResult:
         query = db.query(NetworkGameAudit)
         if query_str:
@@ -54,39 +54,33 @@ class CRUDNetworkGameAudit(
     #     return db.query(NPPATable).order_by(NPPATable.publish_date.desc()).first().publish_date
 
     def delete_all(self, db: Session) -> None:
-        """删除所有数据"""
         db.query(NetworkGameAudit).delete()
         db.commit()
 
     def is_empty(self, db: Session) -> bool:
         return False if db.query(NetworkGameAudit).first() else True
 
-    def get_audit_categroy_top_10(
-        self, db: Session, category: Optional[str]
-    ) -> list[NetworkGameCategoryRank]:
+    def get_audit_category_top_10(
+            self, db: Session, category: Optional[int]
+    ) -> NetworkGameCategoryRank:
         """Get the top 10 audit category
         :param category: the category of game e.g: 1: domestic 2: foreign
         """
-        if category:
-            filter_str = "and category=:category"
-        else:
-            filter_str = ""
 
-        sql = text(f"""select t.audit_category, count(*) audit_count
-            from (select case when audit_category = '' then '无分类' else audit_category end audit_category
-            from networkgameaudits where 1=1 {filter_str}) t group by t.audit_category
-            order by audit_count desc limit 10
-            """)
-        result_proxy = db.execute(
-            sql,
-            {'category': category},
-        ).fetchall()
-        data = []
+        query = db.query(case(
+            (NetworkGameAudit.audit_category == '', literal_column("'无分类'")),
+            else_=NetworkGameAudit.audit_category
+        ).label('audit_category'), func.count(text('*')).label('audit_count'))
+        if category:
+            query = query.filter(NetworkGameAudit.category == category)
+
+        result_proxy = query.group_by(NetworkGameAudit.audit_category).order_by(text('audit_count desc')).limit(
+            10).all()
+        rank = NetworkGameCategoryRank(audit_categories=[], audit_counts=[])
         for item in result_proxy:
-            data.append(
-                NetworkGameCategoryRank(audit_category=item[0], audit_count=item[1])
-            )
-        return data
+            rank.audit_categories.append(item[0])
+            rank.audit_counts.append(item[1])
+        return rank
 
 
 network_game_audit = CRUDNetworkGameAudit(NetworkGameAudit)

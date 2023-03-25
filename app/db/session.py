@@ -6,7 +6,8 @@ from app.core.config import settings
 if settings.DATABASE == 'mysql':
     engine = create_engine(
         settings.SQLALCHEMY_DATABASE_URI, 
-        future=True
+        future=True,
+        echo=True
     )
 else:
     engine = create_engine(

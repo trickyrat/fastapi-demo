@@ -43,5 +43,5 @@ class NetworkGameAudit(NetworkGameAuditInDBBase):
 
 
 class NetworkGameCategoryRank(BaseModel):
-    audit_category: str
-    audit_count: int
+    audit_categories: list[str]
+    audit_counts: list[int]
