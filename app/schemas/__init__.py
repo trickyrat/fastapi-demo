@@ -9,6 +9,8 @@ from .network_game_audit import (
     NetworkGameAuditUpdate,
     NetworkGameAuditInDBBase,
     NetworkGameCategoryRank,
+    NetworkGamePublisherRank,
+    NetworkGamePerYearRank
 )
 from .game_audit import GameAudit, GameAuditCreate, GameAuditUpdate, GameAuditInDBBase
 from .game_revocation_audit import (
@@ -30,3 +32,4 @@ from .egame_audit import (
     EGameAuditInDBBase,
 )
 from .paged_result import PagedResult
+from .chart import Chart, Legend, Series, BackgroundStyle, Axis, ChartTitle, BarSeries, ChartGrid, ChartTooltip, Toolbox, ToolboxFeature

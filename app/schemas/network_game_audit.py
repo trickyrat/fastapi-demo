@@ -1,6 +1,3 @@
-import datetime
-from typing import Optional
-
 from pydantic import BaseModel
 
 
@@ -42,6 +39,23 @@ class NetworkGameAudit(NetworkGameAuditInDBBase):
     pass
 
 
-class NetworkGameCategoryRank(BaseModel):
-    audit_categories: list[str]
+class NetworkGameRankBase(BaseModel):
+    title: str
+    legend: str
     audit_counts: list[int]
+    chart_type: str = 'bar'
+
+
+class NetworkGameCategoryRank(NetworkGameRankBase):
+    audit_categories: list[str]
+
+
+class NetworkGamePublisherRank(NetworkGameRankBase):
+    publishers: list[str]
+
+
+class NetworkGamePerYearRank(NetworkGameRankBase):
+    years: list[str]
+    total_audits: list[int]
+    domestic_audits: list[int]
+    foreign_audits: list[int]

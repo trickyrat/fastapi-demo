@@ -6,11 +6,12 @@ from sqlalchemy.orm import Session
 from app import models
 from app.crud.base import CRUDBase
 from app.models.network_game_audit import NetworkGameAudit
-from app.schemas import PagedResult
+from app.schemas import PagedResult, Chart, BarSeries, Legend, BackgroundStyle, Axis, ChartTitle
+from app.schemas.chart import LineSeries, ChartGrid, Toolbox, ToolboxFeature, ChartTooltip
 from app.schemas.network_game_audit import (
     NetworkGameAuditCreate,
     NetworkGameAuditUpdate,
-    NetworkGameCategoryRank,
+    NetworkGameCategoryRank, NetworkGamePublisherRank, NetworkGamePerYearRank,
 )
 
 
@@ -60,27 +61,104 @@ class CRUDNetworkGameAudit(
     def is_empty(self, db: Session) -> bool:
         return False if db.query(NetworkGameAudit).first() else True
 
-    def get_audit_category_top_10(
-            self, db: Session, category: Optional[int]
-    ) -> NetworkGameCategoryRank:
+    def get_audit_category_top_10(self, db: Session, category: Optional[int]) -> Chart:
         """Get the top 10 audit category
         :param category: the category of game e.g: 1: domestic 2: foreign
         """
-
-        query = db.query(case(
-            (NetworkGameAudit.audit_category == '', literal_column("'无分类'")),
-            else_=NetworkGameAudit.audit_category
-        ).label('audit_category'), func.count(text('*')).label('audit_count'))
+        query = db.query(NetworkGameAudit.audit_category, func.count(text('*')).label('audit_count'))
         if category:
             query = query.filter(NetworkGameAudit.category == category)
 
         result_proxy = query.group_by(NetworkGameAudit.audit_category).order_by(text('audit_count desc')).limit(
             10).all()
-        rank = NetworkGameCategoryRank(audit_categories=[], audit_counts=[])
+
+        x_axis = Axis(type='category', data=[])
+        y_axis = Axis(type='value', data=[])
+        title = ChartTitle(text='Domestic/Foreign network game audits')
+        series = BarSeries(name='audit_counts', data=[], showBackground=True,
+                           backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
+
         for item in result_proxy:
-            rank.audit_categories.append(item[0])
-            rank.audit_counts.append(item[1])
-        return rank
+            x_axis.data.append(item[0])
+            series.data.append(item[1])
+
+        chart = Chart(title=title, legend=Legend(data=['audit_counts']), yAxis=y_axis, series=[series], xAxis=x_axis)
+        return chart
+
+    def get_publisher_top_10(self, db: Session, category: Optional[int]) -> Chart:
+        query = db.query(NetworkGameAudit.publisher, func.count(text('*')).label('audit_count'))
+        if category:
+            query = query.filter(NetworkGameAudit.category == category)
+
+        result_proxy = query.group_by(NetworkGameAudit.publisher).order_by(text('audit_count desc')).limit(10).all()
+
+        x_axis = Axis(type='category', data=[])
+        y_axis = Axis(type='value', data=[])
+        title = ChartTitle(text='Network Game Publisher Top 10')
+        legend = Legend(data=['audit_counts'])
+        series = BarSeries(name='audit_counts', data=[], showBackground=True,
+                           backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
+
+        for item in result_proxy:
+            x_axis.data.append(item[0])
+            series.data.append(item[1])
+
+        chart = Chart(title=title, xAxis=x_axis, yAxis=y_axis, legend=legend, series=[series])
+        return chart
+
+    def get_audits_per_year(self, db: Session) -> Chart:
+        query = db.query(func.year(NetworkGameAudit.publish_date).label('year'), NetworkGameAudit.category,
+                         func.count(text('*')).label('audit_count'))
+        result_proxy = query.group_by(func.year(NetworkGameAudit.publish_date), NetworkGameAudit.category).order_by(
+            text('year')).all()
+
+        title = ChartTitle(text='Network Game Audits per Year')
+        total_series = LineSeries(name='total', data=[], showBackground=True, stack='Total',
+                                  backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
+
+        domestic_series = LineSeries(name='domestic', data=[], showBackground=True, stack='Total',
+                                     backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
+
+        foreign_series = LineSeries(name='foreign', data=[], showBackground=True, stack='Total',
+                                    backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
+        total = {}
+        years_set = set()
+        for item in result_proxy:
+            year = item[0]
+            years_set.add(year)
+
+        for item in years_set:
+
+
+        for item in result_proxy:
+
+            if year in total:
+                total[year] += item[2]
+            else:
+                total[year] = item[2]
+
+            if item[1] == 1 and year in years_set:
+                domestic_series.data.append(item[2])
+            elif item[1] == 1 and year not in years_set:
+                domestic_series.data.append(item[2])
+
+            if item[1] == 2 and year in years_set:
+                foreign_series.data.append(item[2])
+            elif item[1] == 2 and year not in years_set:
+                foreign_series.data.append(item[2])
+
+        years = list(years_set)
+        x_axis = Axis(type='category', data=years)
+        y_axis = Axis(type='value')
+        grid = ChartGrid(left='3%', right='4%', bottom='3%', containLabel=True)
+        toolbox = Toolbox(feature=ToolboxFeature(saveAsImage={}))
+        tooltip = ChartTooltip(trigger='axis')
+        total_series.data = list(total.values())
+
+        chart = Chart(title=title, legend=Legend(data=['total', 'domestic', 'foreign']), yAxis=y_axis,
+                      series=[total_series, domestic_series, foreign_series], xAxis=x_axis, grid=grid,
+                      toolbox=toolbox, tooltip=tooltip)
+        return chart
 
 
 network_game_audit = CRUDNetworkGameAudit(NetworkGameAudit)
