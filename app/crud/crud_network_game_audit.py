@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy import or_, text, func, case, literal_column
+from sqlalchemy import or_, text, func
 from sqlalchemy.orm import Session
 
 from app import models
@@ -11,7 +11,6 @@ from app.schemas.chart import LineSeries, ChartGrid, Toolbox, ToolboxFeature, Ch
 from app.schemas.network_game_audit import (
     NetworkGameAuditCreate,
     NetworkGameAuditUpdate,
-    NetworkGameCategoryRank, NetworkGamePublisherRank, NetworkGamePerYearRank,
 )
 
 
@@ -49,10 +48,6 @@ class CRUDNetworkGameAudit(
     def multiple_create(self, db: Session, *, objs_in: list[NetworkGameAudit]) -> None:
         db.add_all(objs_in)
         db.commit()
-
-    # def get_latest_date(self, db: Session) -> datetime.datetime:
-    #     """获取最新发布日期"""
-    #     return db.query(NPPATable).order_by(NPPATable.publish_date.desc()).first().publish_date
 
     def delete_all(self, db: Session) -> None:
         db.query(NetworkGameAudit).delete()
@@ -123,38 +118,41 @@ class CRUDNetworkGameAudit(
                                     backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
         total = {}
         years_set = set()
+        year_with_category = set()
+        result_without_value = set()
         for item in result_proxy:
-            year = item[0]
-            years_set.add(year)
+            years_set.add(item[0])
+            result_without_value.add((item[0], item[1]))
 
         for item in years_set:
+            year_with_category.add((item, 1))
+            year_with_category.add((item, 2))
 
+        for item in sorted(year_with_category):
+            if item not in result_without_value:
+                result_proxy.insert(0, (item[0], item[1], 0))
 
         for item in result_proxy:
-
+            year = item[0]
             if year in total:
                 total[year] += item[2]
             else:
                 total[year] = item[2]
-
-            if item[1] == 1 and year in years_set:
+            category = item[1]
+            if category == 1:
                 domestic_series.data.append(item[2])
-            elif item[1] == 1 and year not in years_set:
-                domestic_series.data.append(item[2])
-
-            if item[1] == 2 and year in years_set:
-                foreign_series.data.append(item[2])
-            elif item[1] == 2 and year not in years_set:
+            else:
                 foreign_series.data.append(item[2])
 
+        # assemble chart
         years = list(years_set)
+        years.sort()
         x_axis = Axis(type='category', data=years)
         y_axis = Axis(type='value')
         grid = ChartGrid(left='3%', right='4%', bottom='3%', containLabel=True)
         toolbox = Toolbox(feature=ToolboxFeature(saveAsImage={}))
         tooltip = ChartTooltip(trigger='axis')
         total_series.data = list(total.values())
-
         chart = Chart(title=title, legend=Legend(data=['total', 'domestic', 'foreign']), yAxis=y_axis,
                       series=[total_series, domestic_series, foreign_series], xAxis=x_axis, grid=grid,
                       toolbox=toolbox, tooltip=tooltip)
