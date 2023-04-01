@@ -305,7 +305,8 @@ def main(argv):
     for opt, arg in opts:
         if opt in ("-h", "--help"):
             print(
-                "Support parameter mode. e.g: -m <mode> pr --mode=<mode>, mode is 0 or 1. 0: incremental data, 1: full data"
+                "Support parameter mode. e.g: -m <mode> or --mode=<mode>, mode is 0 or 1. 0: incremental data, "
+                "1: full data"
             )
             sys.exit()
         elif opt in ("-m", "--mode"):
