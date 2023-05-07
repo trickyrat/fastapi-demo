@@ -7,7 +7,7 @@ from app import models
 from app.crud.base import CRUDBase
 from app.models.network_game_audit import NetworkGameAudit
 from app.schemas import PagedResult, Chart, BarSeries, Legend, BackgroundStyle, Axis, ChartTitle
-from app.schemas.chart import LineSeries, ChartGrid, Toolbox, ToolboxFeature, ChartTooltip
+from app.schemas.chart import LineSeries, ChartGrid, Toolbox, ToolboxFeature, ChartTooltip, AxisLabel
 from app.schemas.network_game_audit import (
     NetworkGameAuditCreate,
     NetworkGameAuditUpdate,
@@ -67,8 +67,8 @@ class CRUDNetworkGameAudit(
         result_proxy = query.group_by(NetworkGameAudit.audit_category).order_by(text('audit_count desc')).limit(
             10).all()
 
-        x_axis = Axis(type='category', data=[])
-        y_axis = Axis(type='value', data=[])
+        x_axis = Axis(type='category', data=[], axisLabel=AxisLabel(interval=0, rotate=75))
+        y_axis = Axis(type='value', data=[], axisLabel=AxisLabel())
         title = ChartTitle(text='Domestic/Foreign network game audits')
         series = BarSeries(name='audit_counts', data=[], showBackground=True,
                            backgroundStyle=BackgroundStyle(color='rgba(180, 180, 180, 0.2)'))
@@ -87,8 +87,8 @@ class CRUDNetworkGameAudit(
 
         result_proxy = query.group_by(NetworkGameAudit.publisher).order_by(text('audit_count desc')).limit(10).all()
 
-        x_axis = Axis(type='category', data=[])
-        y_axis = Axis(type='value', data=[])
+        x_axis = Axis(type='category', data=[], axisLabel=AxisLabel(interval=0, rotate=75))
+        y_axis = Axis(type='value', data=[], axisLabel=AxisLabel())
         title = ChartTitle(text='Network Game Publisher Top 10')
         legend = Legend(data=['audit_counts'])
         series = BarSeries(name='audit_counts', data=[], showBackground=True,
@@ -147,7 +147,7 @@ class CRUDNetworkGameAudit(
         # assemble chart
         years = list(years_set)
         years.sort()
-        x_axis = Axis(type='category', data=years)
+        x_axis = Axis(type='category', data=years, axisLabel=AxisLabel())
         y_axis = Axis(type='value')
         grid = ChartGrid(left='3%', right='4%', bottom='3%', containLabel=True)
         toolbox = Toolbox(feature=ToolboxFeature(saveAsImage={}))

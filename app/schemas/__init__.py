@@ -32,4 +32,4 @@ from .egame_audit import (
     EGameAuditInDBBase,
 )
 from .paged_result import PagedResult
-from .chart import Chart, Legend, Series, BackgroundStyle, Axis, ChartTitle, BarSeries, ChartGrid, ChartTooltip, Toolbox, ToolboxFeature
+from .chart import Chart, Legend, Series, BackgroundStyle, Axis, ChartTitle, BarSeries, ChartGrid, ChartTooltip, Toolbox, ToolboxFeature,AxisLabel

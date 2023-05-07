@@ -37,9 +37,19 @@ class ChartTitle(BaseModel):
     bottom: Optional[str]
 
 
+class AxisLabel(BaseModel):
+    interval: Optional[int | str] = "auto"
+    show: bool = True
+    margin: Optional[int] = 8
+    rotate: Optional[int] = 0
+    inside: Optional[bool] = False
+
+
 class Axis(BaseModel):
     type: str
     data: Optional[list[str]]
+    show: bool = True
+    axisLabel: Optional[AxisLabel]
 
 
 class ChartTooltip(BaseModel):
