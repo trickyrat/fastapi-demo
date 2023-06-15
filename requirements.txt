@@ -47,3 +47,5 @@ starlette
 typing_extensions
 urllib3
 uvicorn
+
+playwright
