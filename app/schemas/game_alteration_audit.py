@@ -8,7 +8,6 @@ class GameAlterationAuditBase(BaseModel):
     operator: str
     cancel_msg: str
     audit_no: str
-    isbn: str
     approval_date: str
 
 
@@ -28,7 +27,6 @@ class GameAlterationAuditInDBBase(GameAlterationAuditBase):
     operator: str
     cancel_msg: str
     audit_no: str
-    isbn: str
     approval_date: str
 
     class Config:

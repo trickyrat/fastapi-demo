@@ -17,9 +17,9 @@ from app.core.config import settings
 #     )
 
 engine = create_engine(
-        settings.SQLALCHEMY_DATABASE_URI, 
-        future=True,
-        echo=True
-    )
+    settings.SQLALCHEMY_DATABASE_URI,
+    future=True
+    # echo=True
+)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)

@@ -11,5 +11,4 @@ class GameAlterationAudit(Base):
     operator = Column(String(512))
     alteration_msg = Column(String(2048))
     audit_no = Column(String(128))
-    isbn = Column(String(128))
     alter_date = Column(DateTime)

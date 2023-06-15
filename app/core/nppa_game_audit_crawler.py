@@ -3,8 +3,9 @@ import getopt
 import logging
 import sys
 
+from playwright.sync_api import sync_playwright
+
 from bs4 import BeautifulSoup
-import requests
 import re
 
 from sqlalchemy.orm import Session
@@ -18,19 +19,22 @@ from app import crud
 
 class NPPAGameAuditCrawler:
     def __init__(self):
-        self.base_url = "https://www.nppa.gov.cn"
-        self.data_url = "/nppa/channels/317"  # 第一页 /nppa/channels/317.shtml 后续页面/nppa/channels/317_2.shtml
+        self.base_url = "https://www.nppa.gov.cn/bsfw/jggs/yxspjg"
+        self.data_url = "/index"  # 第一页 /bsfw/jggs/yxspjg/index.html 后续页面/bsfw/jggs/yxspjg/index_1.html
         self.headers = {
             "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.44"
         }
-        self.suffix = ".shtml"
+        self.suffix = ".html"
 
     def __convert_to_soup(self, url: str):
-        response = requests.get(url, headers=self.headers)
-        response.encoding = "u8"
-        html = response.text
-        soup = BeautifulSoup(html, "html.parser")
-        return soup
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            page.goto(url=url)
+            content = page.content()
+            browser.close()
+            soup = BeautifulSoup(content, "html.parser")
+            return soup
 
     def __parse_table(self, url: str) -> list[GameAudit]:
         """Parse data table
@@ -44,11 +48,11 @@ class NPPAGameAuditCrawler:
         for li in li_list:
             a = li.find("a")
             title = a.text
-            url = f"{self.base_url}{a['href']}"
+            url = f"{self.base_url}{a['href'][1:]}"
             publish_date = re.sub(r"[\[\]]", "", li.find("span").text)
             links.append(
                 GameAudit(
-                    title=title,
+                    title=title.strip(),
                     url=url,
                     publish_date=datetime.datetime.strptime(publish_date, "%Y-%m-%d"),
                 )
@@ -61,7 +65,7 @@ class NPPAGameAuditCrawler:
     ) -> list[NetworkGameAudit]:
         """Parse network game audits
         :param url: url of network game
-        :param game_type: 320 domestic 318 foreign
+        :param game_type: gcwlyxspxx -> domestic jkwlyxspxx -> foreign
         :return: List of network game audits
         """
         logging.info(f"Start to parse network game audit, url: {url}.")
@@ -69,24 +73,37 @@ class NPPAGameAuditCrawler:
         soup = self.__convert_to_soup(url)
         # table_rows = []
         table_row_selector = "tr:not([style*=color])"
-        if game_type == "320":
-            table = soup.find_all("table", class_="trStyle tableNormal")
+        if game_type == "gcwlyxspxx":
+            table = soup.find_all("table", class_="trStyle tableOrder")
             table_rows = table[0].select(table_row_selector)
         else:
             table_rows = soup.select(table_row_selector)
         for row in table_rows:
             tds = row.find_all("td")
+            category = 1 if game_type == "gcwlyxspxx" else 2
+            name = tds[1].text.strip()
             td_count = len(tds)
-            isbn = "" if td_count == 7 else tds[6].text
-            category = 1 if game_type == "320" else 2
-            publish_date = tds[6].text if td_count == 7 else tds[7].text
+            if td_count == 7:
+                audit_category = ""
+                publisher = tds[2].text.strip()
+                operator = tds[3].text.strip()
+                audit_no = tds[4].text.strip()
+                isbn = tds[5].text.strip()
+                publish_date = tds[6].text.strip()
+            else:
+                audit_category = tds[2].text.strip()
+                publisher = tds[3].text.strip()
+                operator = tds[4].text.strip()
+                audit_no = tds[5].text.strip()
+                isbn = tds[6].text.strip()
+                publish_date = tds[7].text.strip()
             network_games.append(
                 NetworkGameAudit(
-                    name=tds[1].text,
-                    audit_category=tds[2].text,
-                    publisher=tds[3].text,
-                    operator=tds[4].text,
-                    audit_no=tds[5].text,
+                    name=name,
+                    audit_category=audit_category,
+                    publisher=publisher,
+                    operator=operator,
+                    audit_no=audit_no,
                     isbn=isbn,
                     category=category,
                     publish_date=datetime.datetime.strptime(publish_date, "%Y年%m月%d日"),
@@ -110,10 +127,12 @@ class NPPAGameAuditCrawler:
             tds = row.find_all("td")
             egames.append(
                 EGameAudit(
-                    name=tds[1].text,
-                    publisher=tds[2].text,
-                    audit_no=tds[3].text,
-                    publish_date=datetime.datetime.strptime(tds[4].text, "%Y年%m月%d日"),
+                    name=tds[1].text.strip(),
+                    publisher=tds[2].text.strip(),
+                    audit_no=tds[3].text.strip(),
+                    publish_date=datetime.datetime.strptime(
+                        tds[4].text.strip(), "%Y年%m月%d日"
+                    ),
                 )
             )
 
@@ -122,7 +141,7 @@ class NPPAGameAuditCrawler:
 
     def __parse_game_revocation_audits(self, url: str) -> list[GameRevocationAudit]:
         """Parse game revocation audits
-        :param url: url of revocation 747
+        :param url: url of revocation
         :return: List of game revocation audits
         """
         logging.info(f"Start to parse game audit revocations, url: {url}.")
@@ -131,19 +150,18 @@ class NPPAGameAuditCrawler:
         table_rows = soup.select("tr:not([style*=color])")
         for row in table_rows:
             tds = row.find_all("td")
-            td_count = len(tds)
-            isbn = "" if td_count == 8 else tds[7].text
-            approve_date = tds[7].text if td_count == 8 else tds[8].text
             revocations.append(
                 GameRevocationAudit(
                     name=tds[1].text,
-                    audit_category=tds[2].text,
-                    publisher=tds[3].text,
-                    operator=tds[4].text,
-                    revocation_msg=tds[5].text,
-                    audit_no=tds[6].text,
-                    isbn=isbn,
-                    approval_date=datetime.datetime.strptime(approve_date, "%Y年%m月%d日"),
+                    audit_category=tds[2].text.strip(),
+                    publisher=tds[3].text.strip(),
+                    operator=tds[4].text.strip(),
+                    revocation_msg=tds[5].text.strip(),
+                    audit_no=tds[6].text.strip(),
+                    isbn=tds[7].text.strip(),
+                    approval_date=datetime.datetime.strptime(
+                        tds[8].text.strip(), "%Y年%m月%d日"
+                    ),
                 )
             )
         logging.info(
@@ -153,7 +171,7 @@ class NPPAGameAuditCrawler:
 
     def __parse_game_alteration_audits(self, url: str) -> list[GameAlterationAudit]:
         """Parse game audit changes
-        :param url: url of changes(321)
+        :param url: url of changes
         :return: List of game audit changes
         """
         logging.info(f"Start to parse game change audit, url: {url}.")
@@ -162,19 +180,17 @@ class NPPAGameAuditCrawler:
         table_rows = soup.select("tr:not([style*=color])")
         for row in table_rows:
             tds = row.find_all("td")
-            td_count = len(tds)
-            isbn = "" if td_count == 8 else tds[7].text
-            publish_date = tds[7].text if td_count == 8 else tds[8].text
             alterations.append(
                 GameAlterationAudit(
-                    name=tds[1].text,
-                    audit_category=tds[2].text,
-                    publisher=tds[3].text,
-                    operator=tds[4].text,
-                    alteration_msg=tds[5].text,
-                    audit_no=tds[6].text,
-                    isbn=isbn,
-                    alter_date=datetime.datetime.strptime(publish_date, "%Y年%m月%d日"),
+                    name=tds[1].text.strip(),
+                    audit_category=tds[2].text.strip(),
+                    publisher=tds[3].text.strip(),
+                    operator=tds[4].text.strip(),
+                    alteration_msg=tds[5].text.strip(),
+                    audit_no=tds[6].text.strip(),
+                    alter_date=datetime.datetime.strptime(
+                        tds[7].text.strip(), "%Y年%m月%d日"
+                    ),
                 )
             )
 
@@ -209,8 +225,8 @@ class NPPAGameAuditCrawler:
         soup = self.__convert_to_soup(self.base_url + self.data_url + self.suffix)
         total_page = re.sub(r"\D", "", soup.find("a", class_="sPage_a sPage_prev").text)
         game_audit_list = []
-        for i in range(1, int(total_page) + 1):
-            current_page = "" if i == 1 else f"_{i}"
+        for i in range(0, int(total_page)):
+            current_page = "" if i == 0 else f"_{i}"
             url = f"{self.base_url}{self.data_url}{current_page}{self.suffix}"
             game_audit_list.extend(self.__parse_table(url))
         if game_audit_list:
@@ -229,8 +245,8 @@ class NPPAGameAuditCrawler:
             foreign_network_game_cnt
         ) = audit_changes_cnt = audit_cancel_cnt = egame_audit_cnt = 0
         for audits in game_audits:
-            data_type = re.search(r"/(\d{3})/", audits.url).group(1)
-            if data_type == "318":
+            data_type = re.search(r"/(\w{8,10})/", audits.url).group(1)
+            if data_type == "gcwlyxspxx":
                 domestic_network_games = self.__parse_network_game_audits(
                     audits.url, data_type
                 )
@@ -239,7 +255,7 @@ class NPPAGameAuditCrawler:
                     db, objs_in=domestic_network_games
                 )
                 domestic_network_games.clear()
-            elif data_type == "320":
+            elif data_type == "jkwlyxspxx":
                 foreign_network_games = self.__parse_network_game_audits(
                     audits.url, data_type
                 )
@@ -248,17 +264,17 @@ class NPPAGameAuditCrawler:
                     db, objs_in=foreign_network_games
                 )
                 foreign_network_games.clear()
-            elif data_type == "321":
+            elif data_type == "yxspbgxx":
                 audit_changes = self.__parse_game_alteration_audits(audits.url)
                 audit_changes_cnt += len(audit_changes)
                 crud.game_alteration_audit.multiple_create(db, objs_in=audit_changes)
                 audit_changes.clear()
-            elif data_type == "747":
+            elif data_type == "yxspcxxx":
                 audit_cancels = self.__parse_game_revocation_audits(audits.url)
                 audit_cancel_cnt += len(audit_cancels)
                 crud.game_revocation_audit.multiple_create(db, objs_in=audit_cancels)
                 audit_cancels.clear()
-            elif data_type == "319":
+            elif data_type == "jkdzyxspxx":
                 egames = self.__parse_egame_audits(audits.url)
                 egame_audit_cnt += len(egames)
                 crud.egame_audit.multiple_create(db, objs_in=egames)
