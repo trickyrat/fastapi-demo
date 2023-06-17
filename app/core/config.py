@@ -1,11 +1,9 @@
 import os
-import platform
 import secrets
 from typing import Optional
 
 from pydantic import BaseSettings
 
-# is_windows = platform.platform().startswith("Windows")
 base_dir = os.path.abspath(os.path.dirname("main"))
 # db_dir = os.path.join(base_dir, "test.db")
 origins = [

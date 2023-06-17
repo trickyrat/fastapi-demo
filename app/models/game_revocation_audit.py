@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, Integer, String, DateTime
 
 from app.db.base_class import Base
@@ -13,3 +15,14 @@ class GameRevocationAudit(Base):
     audit_no = Column(String(128))
     isbn = Column(String(128))
     approval_date = Column(DateTime)
+
+    def __init__(self, name: str, audit_category: str, publisher: str, operator: str
+                 , revocation_msg: str, audit_no: str, isbn: str, approval_date: datetime):
+        self.name = name
+        self.audit_category = audit_category
+        self.publisher = publisher
+        self.operator = operator
+        self.revocation_msg = revocation_msg
+        self.audit_no = audit_no
+        self.isbn = isbn
+        self.approval_date = approval_date

@@ -20,10 +20,7 @@ from app import crud
 class NPPAGameAuditCrawler:
     def __init__(self):
         self.base_url = "https://www.nppa.gov.cn/bsfw/jggs/yxspjg"
-        self.data_url = "/index"  # 第一页 /bsfw/jggs/yxspjg/index.html 后续页面/bsfw/jggs/yxspjg/index_1.html
-        self.headers = {
-            "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Safari/537.36 Edg/111.0.1661.44"
-        }
+        self.data_url = "/index"
         self.suffix = ".html"
 
     def __convert_to_soup(self, url: str):
@@ -61,7 +58,7 @@ class NPPAGameAuditCrawler:
         return links
 
     def __parse_network_game_audits(
-        self, url: str, game_type: str
+            self, url: str, game_type: str
     ) -> list[NetworkGameAudit]:
         """Parse network game audits
         :param url: url of network game
@@ -83,15 +80,14 @@ class NPPAGameAuditCrawler:
             category = 1 if game_type == "gcwlyxspxx" else 2
             name = tds[1].text.strip()
             td_count = len(tds)
+            audit_category = "" if td_count == 7 else tds[2].text.strip()
             if td_count == 7:
-                audit_category = ""
                 publisher = tds[2].text.strip()
                 operator = tds[3].text.strip()
                 audit_no = tds[4].text.strip()
                 isbn = tds[5].text.strip()
                 publish_date = tds[6].text.strip()
             else:
-                audit_category = tds[2].text.strip()
                 publisher = tds[3].text.strip()
                 operator = tds[4].text.strip()
                 audit_no = tds[5].text.strip()

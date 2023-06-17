@@ -1,3 +1,5 @@
+import datetime
+
 from sqlalchemy import Column, Integer, String, DateTime
 
 from app.db.base_class import Base
@@ -9,3 +11,9 @@ class EGameAudit(Base):
     publisher = Column(String(512), index=True)
     audit_no = Column(String(128), index=True)
     publish_date = Column(DateTime)
+
+    def __init__(self, name: str, publisher: str, audit_no: str, publish_date: datetime):
+        self.name = name
+        self.publisher = publisher
+        self.audit_no = audit_no
+        self.publish_date = publish_date
