@@ -20,6 +20,7 @@ greenlet
 h11
 idna
 iniconfig
+jose
 lxml
 Mako
 MarkupSafe
@@ -28,6 +29,7 @@ packaging
 passlib
 pathspec
 platformdirs
+playwright
 pluggy
 premailer
 pyasn1
@@ -47,5 +49,3 @@ starlette
 typing_extensions
 urllib3
 uvicorn
-
-playwright
