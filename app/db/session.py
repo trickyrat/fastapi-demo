@@ -1,25 +1,19 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from app.core.config import settings
+from config import settings
 
-# if settings.DATABASE == 'mysql':
-#     engine = create_engine(
-#         settings.SQLALCHEMY_DATABASE_URI, 
-#         future=True,
-#         echo=True
-#     )
-# else:
-#     engine = create_engine(
-#         settings.SQLALCHEMY_DATABASE_URI, 
-#         connect_args={'check_same_thread': False},
-#         future=True
-#     )
-
-engine = create_engine(
-    settings.SQLALCHEMY_DATABASE_URI,
+mysql_engine = create_engine(
+    settings.MYSQL_CONNECTION_STRING,
     future=True
     # echo=True
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, future=True)
+sqlserver_engine = create_engine(
+    settings.SQLSERVER_CONNECTION_STRING,
+    future=True
+    # echo=True
+)
+
+MysqlSession = sessionmaker(autocommit=False, autoflush=False, bind=mysql_engine, future=True)
+SqlServerSession = sessionmaker(autocommit=False, autoflush=False, bind=sqlserver_engine, future=True)

@@ -1,6 +1,7 @@
 import datetime
 import getopt
 import logging
+import os
 import sys
 
 from playwright.sync_api import sync_playwright
@@ -15,13 +16,14 @@ from app.models import EGameAudit, GameRevocationAudit, GameAlterationAudit
 from app.models.network_game_audit import NetworkGameAudit
 from app.models.game_audit import GameAudit
 from app import crud
+from config import settings
 
 
 class NPPAGameAuditCrawler:
     def __init__(self):
-        self.base_url = "https://www.nppa.gov.cn/bsfw/jggs/yxspjg"
-        self.data_url = "/index"
-        self.suffix = ".html"
+        self.base_url = settings.NPPA_BASE_URL
+        self.data_url = settings.NPPA_DATA_URL
+        self.suffix = settings.NPPA_SUFFIX
 
     def __convert_to_soup(self, url: str):
         with sync_playwright() as p:

@@ -27,7 +27,7 @@ class CRUDGameAudit(CRUDBase[GameAudit, GameAuditCreate, GameAuditUpdate]):
         if title:
             query = query.filter(models.GameAudit.title.like(f"%{title}%"))
 
-        audits = query.offset(skip).limit(limit).all()
+        audits = query.order_by('id').offset(skip).limit(limit).all()
         total_count = query.count()
         return PagedResult(total_count=total_count, data=audits)
 
