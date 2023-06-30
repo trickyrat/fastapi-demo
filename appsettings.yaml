@@ -1,0 +1,27 @@
+mysql:
+  server: localhost
+  port: 3306
+  user_name: root
+  password: Trickyrat_05
+  database: fastapidemo
+
+sqlserver:
+  server: localhost
+  port: 1433
+  user_name: sa
+  password: trickyrat
+  database: fastapidemo
+
+
+cors_origins:
+  - "http://localhost:3000"
+  - "http://localhost:5173"
+
+api_version: "v1"
+api_base_url: "/api"
+database: "sqlserver"
+
+nppa:
+  base_url: "https://www.nppa.gov.cn/bsfw/jggs/yxspjg"
+  data_url: "/index"
+  suffix: ".html"
