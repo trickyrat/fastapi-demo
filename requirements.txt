@@ -34,11 +34,13 @@ pluggy
 premailer
 pyasn1
 pydantic
+pymssql
 PyMySQL
 pytest
 python-dateutil
 python-jose
 python-multipart
+pyyaml
 requests
 rsa
 six
