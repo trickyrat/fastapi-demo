@@ -1,7 +1,7 @@
 import datetime
 import getopt
 import logging
-import os
+import random
 import sys
 
 from playwright.sync_api import sync_playwright
@@ -27,7 +27,11 @@ class NPPAGameAuditCrawler:
 
     def __convert_to_soup(self, url: str):
         with sync_playwright() as p:
-            browser = p.chromium.launch()
+            random_number = random.randint(1, 1000_000)
+            if random_number % 2 == 0:
+                browser = p.chromium.launch()
+            else:
+                browser = p.firefox.launch()
             page = browser.new_page()
             page.goto(url=url)
             content = page.content()
@@ -223,7 +227,7 @@ class NPPAGameAuditCrawler:
         soup = self.__convert_to_soup(self.base_url + self.data_url + self.suffix)
         total_page = re.sub(r"\D", "", soup.find("a", class_="sPage_a sPage_prev").text)
         game_audit_list = []
-        for i in range(0, int(total_page)):
+        for i in range(int(total_page)-1, -1, -1):
             current_page = "" if i == 0 else f"_{i}"
             url = f"{self.base_url}{self.data_url}{current_page}{self.suffix}"
             game_audit_list.extend(self.__parse_table(url))

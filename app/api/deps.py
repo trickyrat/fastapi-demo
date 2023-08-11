@@ -17,7 +17,7 @@ reusable_oauth2 = OAuth2PasswordBearer(
 
 
 def get_db() -> Generator:
-    if settings.DATABASE == "Mysql":
+    if settings.DATABASE.upper() == "MYSQL":
         db = MysqlSession()
     else:
         db = SqlServerSession()
