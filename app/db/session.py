@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -11,7 +13,7 @@ mysql_engine = create_engine(
 
 sqlserver_engine = create_engine(
     settings.SQLSERVER_CONNECTION_STRING,
-    future=True
+    future=True,
     # echo=True
 )
 

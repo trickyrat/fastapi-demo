@@ -1,3 +1,5 @@
+# coding=utf-8
+
 from typing import Optional
 
 from sqlalchemy import or_, text, func

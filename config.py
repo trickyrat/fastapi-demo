@@ -1,3 +1,5 @@
+# coding=utf-8
+
 import os
 import secrets
 from typing import Optional
@@ -21,7 +23,7 @@ class Settings(BaseSettings):
           f"{data['mysql']['port']}/{data['mysql']['database']}?charset=utf8"
     SQLSERVER_CONNECTION_STRING: Optional[str] \
         = f"mssql+pymssql://{data['sqlserver']['user_name']}:{data['sqlserver']['password']}@" \
-          f"{data['sqlserver']['server']}:{data['sqlserver']['port']}/{data['sqlserver']['database']}"
+          f"{data['sqlserver']['server']}:{data['sqlserver']['port']}/{data['sqlserver']['database']}?charset=utf8"
     ORIGINS: list[str] = data['cors_origins']
     DATABASE: Optional[str] = data['database']
     NPPA_BASE_URL: Optional[str] = data['nppa']['base_url']
