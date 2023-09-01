@@ -32,7 +32,7 @@ class NetworkGameAuditInDBBase(NetworkGameAuditBase):
     publish_date: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class NetworkGameAudit(NetworkGameAuditInDBBase):

@@ -32,7 +32,7 @@ class GameRevocationAuditInDBBase(GameRevocationAuditBase):
     approve_date: str
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class GameRevocationAudit(GameRevocationAuditInDBBase):

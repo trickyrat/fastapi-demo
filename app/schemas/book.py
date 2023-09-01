@@ -29,7 +29,7 @@ class BookInDBBase(BookBase):
     author_id: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Book(BookInDBBase):
