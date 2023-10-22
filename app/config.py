@@ -5,10 +5,11 @@ import secrets
 from typing import Optional
 import yaml
 
-base_dir = os.path.abspath(os.path.dirname("main"))
+current_path = os.path.abspath(__file__)
+current_dir = os.path.dirname(current_path)
+config_path = os.path.join(current_dir, "appsettings.yaml")
 
-
-with open("appsettings.yaml", "r", encoding="u8") as file:
+with open(config_path, "r", encoding="u8") as file:
     data = yaml.safe_load(file)
 
 

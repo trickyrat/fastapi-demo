@@ -1,5 +1,6 @@
 mysql:
   server: localhost
+  #server: host.docker.internal
   port: 3306
   user_name: root
   password: Trickyrat_05
@@ -7,6 +8,7 @@ mysql:
 
 sqlserver:
   server: localhost
+  #server: host.docker.internal
   port: 1433
   user_name: sa
   password: trickyrat
@@ -19,8 +21,8 @@ cors_origins:
 
 api_version: "v1"
 api_base_url: "/api"
-database: "sqlserver"
-#database: "Mysql"
+#database: "sqlserver"
+database: "Mysql"
 
 nppa:
   base_url: "https://www.nppa.gov.cn/bsfw/jggs/yxspjg"
