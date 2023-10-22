@@ -9,6 +9,8 @@ class BookBase(BaseModel):
     isbn: Optional[str] = None
     cover_img: Optional[str] = None
     description: Optional[str] = None
+    language: Optional[str] = None
+    paperback: int = 0
     publish_date: Optional[str] = None
     author_id: Optional[int] = 0
     is_active: Optional[bool] = False

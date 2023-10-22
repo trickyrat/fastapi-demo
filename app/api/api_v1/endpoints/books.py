@@ -23,8 +23,11 @@ async def read_books(
 
 @router.get("/{book_id}", response_model=schemas.Book)
 async def get_book(*, db: Session = Depends(deps.get_db), book_id: int):
-    return crud.book.get_book(db, book_id)
-
+    return crud.book.get(db, book_id)
+ 
+@router.post("/", response_model=schemas.Book)
+async def create_book(*, db: Session = Depends(deps.get_db), book_to_add: schemas.BookCreate):
+    return crud.book.create(db, obj_in=book_to_add)
 
 @router.put("/{book_id}", response_model=schemas.Book)
 async def update_book(
