@@ -7,7 +7,7 @@ import emails
 from emails.template import JinjaTemplate
 from jose import jwt
 
-from config import settings
+from app.config import settings
 
 
 def send_email(

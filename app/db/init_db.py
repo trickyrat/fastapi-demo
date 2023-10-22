@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 
 from app import crud, schemas
-from config import settings
+from app.config import settings
 
 
 def init_db(db: Session) -> None:

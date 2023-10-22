@@ -3,7 +3,7 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-from config import settings
+from app.config import settings
 
 mysql_engine = create_engine(
     settings.MYSQL_CONNECTION_STRING,
@@ -17,5 +17,9 @@ sqlserver_engine = create_engine(
     # echo=True
 )
 
-MysqlSession = sessionmaker(autocommit=False, autoflush=False, bind=mysql_engine, future=True)
-SqlServerSession = sessionmaker(autocommit=False, autoflush=False, bind=sqlserver_engine, future=True)
+MysqlSession = sessionmaker(
+    autocommit=False, autoflush=False, bind=mysql_engine, future=True
+)
+SqlServerSession = sessionmaker(
+    autocommit=False, autoflush=False, bind=sqlserver_engine, future=True
+)

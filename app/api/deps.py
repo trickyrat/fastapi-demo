@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app import crud, models, schemas
 from app.core import security
-from config import settings
+from app.config import settings
 from app.db.session import MysqlSession, SqlServerSession
 
 reusable_oauth2 = OAuth2PasswordBearer(
