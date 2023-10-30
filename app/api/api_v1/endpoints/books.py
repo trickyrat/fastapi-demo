@@ -10,7 +10,7 @@ from app.api import deps
 router = APIRouter()
 
 
-@router.get("/", response_model=list[schemas.Book])
+@router.get("", response_model=list[schemas.Book])
 async def read_books(
     *,
     db: Session = Depends(deps.get_db),

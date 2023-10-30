@@ -17,7 +17,7 @@ async def create_author(
     return author
 
 
-@router.get("/", response_model=List[schemas.Author])
+@router.get("", response_model=List[schemas.Author])
 async def read_authors(
     *,
     db: Session = Depends(deps.get_db),
